@@ -199,7 +199,7 @@ function setupEventListeners() {
 // ============================================
 function initiateDiscordLogin() {
     const scopes = ['identify', 'email'];
-    const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${CONFIG.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(CONFIG.DISCORD_REDIRECT_URI)}&response_type=code&scope=${scopes.join('%20')}`;
+    const discordAuthUrl = `https://discord.com/oauth2/authorize?client_id=1468266905176379555&response_type=code&redirect_uri=https%3A%2F%2Fqgrzstaff.vercel.app%2F&scope=identify+email`;
     
     window.location.href = discordAuthUrl;
 }
