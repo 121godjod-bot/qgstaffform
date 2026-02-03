@@ -3,11 +3,11 @@
 // ============================================
 const CONFIG = {
     // Discord OAuth2 Configuration
-    DISCORD_CLIENT_ID: 'YOUR_DISCORD_CLIENT_ID_HERE',
+    DISCORD_CLIENT_ID: '1468266905176379555',
     DISCORD_REDIRECT_URI: 'YOUR_WEBSITE_URL_HERE', // e.g., 'https://yourdomain.com' or 'http://localhost:8000'
     
     // Discord Webhook URL
-    WEBHOOK_URL: 'YOUR_DISCORD_WEBHOOK_URL_HERE',
+    WEBHOOK_URL: 'https://discord.com/api/webhooks/1468269228460212487/ToIqd_EJrMeXc0p4McSh7go8VqWRk6OT6pCZSYTwIp1erHJrDKt3nJRKDhjfacRbZ5Kq',
     
     // Server Logos (optional - leave empty to use placeholders)
     QUANTUM_LOGO: '', // URL to Quantum Gaming logo
