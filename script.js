@@ -4,11 +4,11 @@
 const CONFIG = {
     // Discord OAuth2 Configuration
     DISCORD_CLIENT_ID: '1468266905176379555',
-    DISCORD_REDIRECT_URI: 'https://qgrzstaff.vercel.app', // e.g., 'https://yourdomain.com' or 'http://localhost:8000'
-    
+    DISCORD_REDIRECT_URI: 'https://qgrzstaff.vercel.app/', // Trailing slash for Discord OAuth2!
+
     // Discord Webhook URL
     WEBHOOK_URL: 'https://discord.com/api/webhooks/1468269228460212487/ToIqd_EJrMeXc0p4McSh7go8VqWRk6OT6pCZSYTwIp1erHJrDKt3nJRKDhjfacRbZ5Kq',
-    
+
     // Server Logos (optional - leave empty to use placeholders)
     QUANTUM_LOGO: '', // URL to Quantum Gaming logo
     REDZONE_LOGO: ''  // URL to RedZone Esports logo
@@ -19,10 +19,10 @@ const CONFIG = {
 // ============================================
 (function() {
     'use strict';
-    
+
     // Disable right-click
     document.addEventListener('contextmenu', e => e.preventDefault());
-    
+
     // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
     document.addEventListener('keydown', e => {
         if (
@@ -34,21 +34,21 @@ const CONFIG = {
             return false;
         }
     });
-    
+
     // Detect DevTools
     const detectDevTools = () => {
         const threshold = 160;
         const widthThreshold = window.outerWidth - window.innerWidth > threshold;
         const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-        
+
         if (widthThreshold || heightThreshold) {
-            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:24px;color:#ff0000;">⚠️ Developer Tools Detected! Please close them.</div>';
+            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:24px;color:#ff0000;">⚠️ Developer Tools Detected! Please close them and refresh the page.</div>';
         }
     };
-    
+
     // Check periodically
     setInterval(detectDevTools, 1000);
-    
+
     // Disable console
     if (!window.console) window.console = {};
     const methods = ["log", "debug", "warn", "info", "error"];
@@ -156,11 +156,11 @@ function initializeApp() {
     const today = new Date();
     const maxDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
     dobInput.max = maxDate.toISOString().split('T')[0];
-    
+
     // Check if returning from Discord OAuth
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-    
+
     if (code) {
         handleDiscordCallback(code);
     } else {
@@ -171,23 +171,23 @@ function initializeApp() {
 function setupEventListeners() {
     // Discord Login
     document.getElementById('discordLoginBtn').addEventListener('click', initiateDiscordLogin);
-    
+
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', logout);
-    
+
     // Server Selection
     document.querySelectorAll('.server-card').forEach(card => {
         card.addEventListener('click', () => selectServer(card.dataset.server));
     });
-    
+
     // Role Selection
     document.querySelectorAll('.role-card').forEach(card => {
         card.addEventListener('click', () => selectRole(card.dataset.role));
     });
-    
+
     // DOB Input
     document.getElementById('dobInput').addEventListener('change', calculateAge);
-    
+
     // Agreement Checkbox
     document.getElementById('agreeCheckbox').addEventListener('change', (e) => {
         document.getElementById('continueBtn').disabled = !e.target.checked;
@@ -199,18 +199,18 @@ function setupEventListeners() {
 // ============================================
 function initiateDiscordLogin() {
     const scopes = ['identify', 'email'];
-    const discordAuthUrl = `https://discord.com/oauth2/authorize?client_id=1468266905176379555&response_type=code&redirect_uri=https%3A%2F%2Fqgrzstaff.vercel.app%2F&scope=identify+email`;
-    
+    const discordAuthUrl = `https://discord.com/oauth2/authorize?client_id=${CONFIG.DISCORD_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(CONFIG.DISCORD_REDIRECT_URI)}&scope=${scopes.join('%20')}`;
+
     window.location.href = discordAuthUrl;
 }
 
 async function handleDiscordCallback(code) {
     showLoading(true);
-    
+
     try {
         // In a real implementation, you would exchange the code for an access token
         // through your backend server. For this demo, we'll simulate the user data.
-        
+
         // This is a placeholder - In production, you need a backend to handle OAuth
         // For demo purposes, we'll use mock data
         setTimeout(() => {
@@ -222,15 +222,15 @@ async function handleDiscordCallback(code) {
                 username: 'discorduser#1234',
                 avatar: 'https://cdn.discordapp.com/embed/avatars/0.png'
             };
-            
+
             displayUserInfo();
             showAppScreen();
             showLoading(false);
-            
+
             // Clean URL
             window.history.replaceState({}, document.title, window.location.pathname);
         }, 1500);
-        
+
     } catch (error) {
         console.error('OAuth Error:', error);
         showLoading(false);
@@ -259,22 +259,22 @@ function logout() {
 // ============================================
 function nextStep() {
     const currentStepDiv = document.getElementById(`step${appState.currentStep}`);
-    
+
     // Validation
     if (!validateCurrentStep()) {
         return;
     }
-    
+
     // Move to next step
     currentStepDiv.classList.remove('active');
     appState.currentStep++;
-    
+
     const nextStepDiv = document.getElementById(`step${appState.currentStep}`);
     nextStepDiv.classList.add('active');
-    
+
     updateProgress();
     updateStepIndicators();
-    
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -282,15 +282,15 @@ function nextStep() {
 function previousStep() {
     const currentStepDiv = document.getElementById(`step${appState.currentStep}`);
     currentStepDiv.classList.remove('active');
-    
+
     appState.currentStep--;
-    
+
     const prevStepDiv = document.getElementById(`step${appState.currentStep}`);
     prevStepDiv.classList.add('active');
-    
+
     updateProgress();
     updateStepIndicators();
-    
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -343,23 +343,23 @@ function updateStepIndicators() {
 // ============================================
 function selectServer(server) {
     appState.formData.server = server;
-    
+
     // Update UI
     document.querySelectorAll('.server-card').forEach(card => {
         card.classList.remove('selected');
     });
     document.querySelector(`[data-server="${server}"]`).classList.add('selected');
-    
+
     // Apply theme
     applyTheme(server);
-    
+
     // Auto-advance after selection
     setTimeout(() => nextStep(), 500);
 }
 
 function applyTheme(server) {
     document.body.classList.remove('quantum-theme', 'redzone-theme');
-    
+
     if (server === 'quantum') {
         document.body.classList.add('quantum-theme');
         document.getElementById('serverName').textContent = 'Quantum Gaming';
@@ -382,13 +382,13 @@ function applyTheme(server) {
 // ============================================
 function selectRole(role) {
     appState.formData.role = role;
-    
+
     // Update UI
     document.querySelectorAll('.role-card').forEach(card => {
         card.classList.remove('selected');
     });
     document.querySelector(`[data-role="${role}"]`).classList.add('selected');
-    
+
     // Auto-advance after selection
     setTimeout(() => nextStep(), 500);
 }
@@ -398,23 +398,23 @@ function selectRole(role) {
 // ============================================
 function calculateAge() {
     const dob = document.getElementById('dobInput').value;
-    
+
     if (!dob) return;
-    
+
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--;
     }
-    
+
     appState.formData.dob = dob;
     appState.formData.age = age;
-    
+
     document.getElementById('ageValue').textContent = age;
-    
+
     if (age < 13) {
         document.getElementById('ageDisplay').style.color = '#f04747';
     } else {
@@ -430,7 +430,7 @@ function proceedToQuestions() {
         alert('You must agree to the rules before proceeding!');
         return;
     }
-    
+
     loadQuestions();
     nextStep();
 }
@@ -439,19 +439,19 @@ function loadQuestions() {
     const questions = ROLE_QUESTIONS[appState.formData.role];
     const container = document.getElementById('questionsContainer');
     container.innerHTML = '';
-    
+
     document.getElementById('questionsTitle').textContent = `${appState.formData.role} - Application Questions`;
-    
+
     questions.forEach((q, index) => {
         const questionDiv = document.createElement('div');
         questionDiv.className = 'question-item';
-        
+
         const label = document.createElement('label');
         label.className = 'question-label';
         label.textContent = q.question;
-        
+
         let input;
-        
+
         if (q.type === 'boolean') {
             input = document.createElement('select');
             input.className = 'question-input';
@@ -471,10 +471,10 @@ function loadQuestions() {
             input.placeholder = 'Write your detailed answer here...';
             input.rows = 5;
         }
-        
+
         input.dataset.questionIndex = index;
         input.required = true;
-        
+
         questionDiv.appendChild(label);
         questionDiv.appendChild(input);
         container.appendChild(questionDiv);
@@ -488,9 +488,9 @@ async function submitApplication() {
     // Collect answers
     const inputs = document.querySelectorAll('#questionsContainer input, #questionsContainer textarea, #questionsContainer select');
     const questions = ROLE_QUESTIONS[appState.formData.role];
-    
+
     appState.formData.answers = {};
-    
+
     let allAnswered = true;
     inputs.forEach((input, index) => {
         const answer = input.value.trim();
@@ -499,14 +499,14 @@ async function submitApplication() {
         }
         appState.formData.answers[questions[index].question] = answer;
     });
-    
+
     if (!allAnswered) {
         alert('Please answer all questions before submitting!');
         return;
     }
-    
+
     showLoading(true);
-    
+
     try {
         await sendToDiscordWebhook();
         showLoading(false);
@@ -530,7 +530,7 @@ async function sendToDiscordWebhook() {
         second: '2-digit',
         hour12: true
     });
-    
+
     // Build answers text
     let answersText = '';
     const questions = ROLE_QUESTIONS[appState.formData.role];
@@ -538,10 +538,10 @@ async function sendToDiscordWebhook() {
         const answer = appState.formData.answers[q.question] || 'No answer';
         answersText += `**${q.question}**\n${answer}\n\n`;
     });
-    
+
     // Create embed color based on server
     const embedColor = appState.formData.server === 'quantum' ? 0x0066ff : 0xff0000;
-    
+
     const payload = {
         content: `📋 **NEW STAFF APPLICATION RECEIVED**`,
         embeds: [
@@ -603,7 +603,7 @@ async function sendToDiscordWebhook() {
             }
         ]
     };
-    
+
     const response = await fetch(CONFIG.WEBHOOK_URL, {
         method: 'POST',
         headers: {
@@ -611,7 +611,7 @@ async function sendToDiscordWebhook() {
         },
         body: JSON.stringify(payload)
     });
-    
+
     if (!response.ok) {
         throw new Error('Webhook request failed');
     }
