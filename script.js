@@ -1,456 +1,677 @@
-// -----------------------------
-// Staff Application - script.js
-// -----------------------------
-// This script expects to read config from <body data-discord-client-id data-redirect-uri data-webhook-url>
-// Example: <body data-discord-client-id="..." data-redirect-uri="https://..." data-webhook-url="https://...">
-
-// --- helper: read config from body attributes ---
-const CONFIG = (function readConfig() {
-  const ds = document.body.dataset;
-  return {
-    DISCORD_CLIENT_ID: ds.discordClientId || '',       // set in index.html data-discord-client-id
-    DISCORD_REDIRECT_URI: ds.redirectUri || ds.redirectUri || ds.redirect || '', // data-redirect-uri
-    WEBHOOK_URL: ds.webhookUrl || ''                   // data-webhook-url
-  };
-})();
-
-// Minimal role question set (keeps your original questions)
-const ROLE_QUESTIONS = {
-  'CREW': [
-    { question: '1. Why do you want to join the staff team?', type: 'long' },
-    { question: '2. How active can you be daily on Discord?', type: 'short' },
-    { question: '3. How would you help new members feel welcome?', type: 'long' },
-    { question: '4. What would you do if two members start arguing in chat?', type: 'long' },
-    { question: '5. Have you been staff in any other server before? (If yes, explain)', type: 'long' },
-    { question: '6. Do you know basic Discord rules and etiquette?', type: 'boolean' },
-    { question: '7. How do you handle criticism from seniors?', type: 'long' },
-    { question: '**SCENARIO:** A popular player is breaking rules. What will you do?', type: 'long' }
-  ],
-  'COMMUNITY STAFF': [
-    { question: '1. How would you increase chat activity in the server?', type: 'long' },
-    { question: '2. What kind of events would you suggest for an eGaming server?', type: 'long' },
-    { question: '3. How do you deal with toxic members without escalating fights?', type: 'long' },
-    { question: '4. How would you handle a member who feels ignored?', type: 'long' },
-    { question: '5. Have you ever managed or grown a community?', type: 'long' },
-    { question: '6. How do you balance fun with rules?', type: 'long' },
-    { question: '**SCENARIO:** A popular player is breaking rules. What will you do?', type: 'long' }
-  ],
-  'SCRIMS MANAGER': [
-    { question: '1. What are scrims and why are they important?', type: 'long' },
-    { question: '2. How would you schedule scrims between two teams?', type: 'long' },
-    { question: '3. What would you do if a team doesn\'t show up?', type: 'long' },
-    { question: '4. How do you handle disputes during scrims?', type: 'long' },
-    { question: '5. Can you manage multiple teams at once?', type: 'boolean' },
-    { question: '6. How will you ensure fair play during scrims?', type: 'long' },
-    { question: '7. What games are you experienced with?', type: 'short' },
-    { question: '**SCENARIO:** A popular player is breaking rules. What will you do?', type: 'long' }
-  ],
-  'TOURNAMENTS STAFF': [
-    { question: '1. Have you ever helped in a tournament before?', type: 'boolean' },
-    { question: '2. How would you manage registrations?', type: 'long' },
-    { question: '3. What steps will you take to prevent cheating?', type: 'long' },
-    { question: '4. How will you handle match delays?', type: 'long' },
-    { question: '5. How do you deal with angry teams after losing?', type: 'long' },
-    { question: '6. Do you understand brackets, rules, and match flow?', type: 'boolean' },
-    { question: '7. How would you coordinate with Scrims Manager?', type: 'long' },
-    { question: '**SCENARIO:** A popular player is breaking rules. What will you do?', type: 'long' }
-  ],
-  'HEAD MOD': [
-    { question: '1. What makes a good moderator?', type: 'long' },
-    { question: '2. How would you handle a staff member abusing power?', type: 'long' },
-    { question: '3. How do you deal with raids or mass spam?', type: 'long' },
-    { question: '4. When should a user be warned vs banned?', type: 'long' },
-    { question: '5. How do you stay calm in heated situations?', type: 'long' },
-    { question: '6. How would you train junior moderators?', type: 'long' },
-    { question: '7. What moderation bots or tools do you know?', type: 'short' },
-    { question: '**SCENARIO:** A popular player is breaking rules. What will you do?', type: 'long' }
-  ],
-  'SR STAFF': [
-    { question: '1. What experience do you have managing large servers?', type: 'long' },
-    { question: '2. How do you make important server decisions?', type: 'long' },
-    { question: '3. How would you resolve conflict between two staff members?', type: 'long' },
-    { question: '4. How do you ensure staff discipline and professionalism?', type: 'long' },
-    { question: '5. How would you handle a server crisis?', type: 'long' },
-    { question: '6. What improvements would you suggest for our server?', type: 'long' },
-    { question: '7. Why should we trust you with high authority?', type: 'long' },
-    { question: '**SCENARIO:** A popular player is breaking rules. What will you do?', type: 'long' }
-  ]
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    DISCORD_CLIENT_ID: '1468266905176379555',
+    REDIRECT_URI: 'https://qgrzstaff.vercel.app/',
+    WEBHOOK_URL: 'https://discord.com/api/webhooks/1468269228460212487/ToIqd_EJrMeXc0p4McSh7go8VqWRk6OT6pCZSYTwIp1erHJrDKt3nJRKDhjfacRbZ5Kq',
+    SCOPES: 'identify email'
 };
 
-// -------------------------
-// appState (keeps track)
-// -------------------------
+const AUTH_URL = `https://discord.com/oauth2/authorize?client_id=${CONFIG.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(CONFIG.SCOPES)}`;
+
+// ============================================
+// GLOBAL STATE
+// ============================================
 let appState = {
-  currentStep: 1,
-  userData: { discordId: '', email: '', displayName: '', username: '', avatar: '' },
-  formData: { server: '', role: '', dob: '', age: 0, answers: {} }
+    server: null,
+    theme: null,
+    user: null,
+    token: null,
+    currentStep: 1,
+    formData: {
+        displayName: '',
+        age: '',
+        role: '',
+        answers: {}
+    }
 };
 
-// -------------------------
-// initialization
-// -------------------------
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-function initializeApp() {
-  // safe guard: set dob max
-  const dobInput = document.getElementById('dobInput');
-  if (dobInput) {
-    const today = new Date();
-    const max = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
-    dobInput.max = max.toISOString().split('T')[0];
-  }
-
-  // populate rules (kept short here; you can expand)
-  const rulesContent = document.getElementById('rulesContent');
-  if (rulesContent) {
-    rulesContent.innerHTML = `
-      <div class="rule-item"><span class="rule-number">1.</span><span class="rule-text"><strong>Do NOT use AI tools</strong> (ChatGPT, Bard, etc.) — AI generated applications will be rejected.</span></div>
-      <div class="rule-item"><span class="rule-number">2.</span><span class="rule-text"><strong>Answer honestly and in your own words.</strong></span></div>
-      <div class="rule-item"><span class="rule-number">3.</span><span class="rule-text"><strong>One application only.</strong></span></div>
-      <div class="warning-box"><h3>⚠️ IMPORTANT</h3><p>If found using AI or copied content: immediate rejection.</p></div>
-    `;
-  }
-
-  // devtools detection (non-destructive overlay)
-  setupDevtoolsDetection();
-
-  // handle OAuth redirect code / error
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const err = params.get('error') || params.get('error_description');
-  if (err) {
-    showLoginMessage('Discord OAuth returned an error: ' + err, true);
-    // leave setup listeners so user can demo-login
-    setupEventListeners();
-    return;
-  }
-
-  if (code) {
-    // NOTE: you need a backend to exchange the code for tokens.
-    // For now we simulate the callback (demo mode).
-    showLoading(true);
-    setTimeout(() => {
-      simulateLogin(); // mock the user after OAuth redirect for demo/testing
-      showLoading(false);
-      // clean the URL so user doesn't see code param
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }, 900);
-    return;
-  }
-
-  // normal path (no code): attach handlers
-  setupEventListeners();
-}
-
-function setupEventListeners() {
-  const discordBtn = document.getElementById('discordLoginBtn');
-  if (discordBtn) discordBtn.addEventListener('click', initiateDiscordLogin);
-
-  const demoBtn = document.getElementById('demoLoginBtn');
-  if (demoBtn) demoBtn.addEventListener('click', simulateLogin);
-
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) logoutBtn.addEventListener('click', logout);
-
-  // server cards
-  document.querySelectorAll('.server-card').forEach(card => card.addEventListener('click', () => selectServer(card.dataset.server)));
-
-  // role cards
-  document.querySelectorAll('.role-card').forEach(card => card.addEventListener('click', () => selectRole(card.dataset.role)));
-
-  // dob
-  const dob = document.getElementById('dobInput');
-  if (dob) dob.addEventListener('change', calculateAge);
-
-  // agreement
-  const agree = document.getElementById('agreeCheckbox');
-  if (agree) agree.addEventListener('change', (e) => {
-    document.getElementById('continueBtn').disabled = !e.target.checked;
-  });
-
-  // devtools overlay close
-  const devClose = document.getElementById('devtoolsCloseBtn');
-  if (devClose) devClose.addEventListener('click', () => {
-    document.getElementById('devtoolsOverlay').classList.add('hidden');
-  });
-
-  // username click to edit displayName
-  const userName = document.getElementById('userName');
-  if (userName) userName.addEventListener('click', () => {
-    const newName = prompt('Change display name:', appState.userData.displayName || appState.userData.username || '');
-    if (newName !== null && newName.trim()) {
-      appState.userData.displayName = newName.trim();
-      displayUserInfo();
-    }
-  });
-}
-
-// -------------------------------
-// DevTools detection overlay
-// -------------------------------
-function setupDevtoolsDetection() {
-  let last = Date.now();
-  setInterval(() => {
-    const threshold = 160;
-    const w = window.outerWidth - window.innerWidth;
-    const h = window.outerHeight - window.innerHeight;
-    if (w > threshold || h > threshold) {
-      // show overlay but keep page intact
-      document.getElementById('devtoolsOverlay').classList.remove('hidden');
-    }
-  }, 1000);
-}
-
-// -------------------------------
-// OAuth (client-side redirect only)
-// -------------------------------
-function initiateDiscordLogin() {
-  if (!CONFIG.DISCORD_CLIENT_ID || !CONFIG.DISCORD_REDIRECT_URI) {
-    showLoginMessage('Missing DISCORD_CLIENT_ID or REDIRECT_URI in index.html body data attributes.', true);
-    return;
-  }
-  const scopes = ['identify', 'email'];
-  const url = `https://discord.com/api/oauth2/authorize?client_id=${encodeURIComponent(CONFIG.DISCORD_CLIENT_ID)}&redirect_uri=${encodeURIComponent(CONFIG.DISCORD_REDIRECT_URI)}&response_type=code&scope=${scopes.join('%20')}`;
-  // redirect user
-  window.location.href = url;
-}
-
-// -------------------------------
-// Demo login / simulate result of OAuth (autofill user)
-// -------------------------------
-function simulateLogin() {
-  appState.userData = {
-    discordId: '99999999999999999',
-    email: 'demo.user@example.com',
-    displayName: 'Demo User',
-    username: 'demouser#0001',
-    avatar: 'https://cdn.discordapp.com/embed/avatars/0.png'
-  };
-  displayUserInfo();
-  showAppScreen();
-}
-
-// display user header
-function displayUserInfo() {
-  const avatar = document.getElementById('userAvatar');
-  const name = document.getElementById('userName');
-  if (avatar) avatar.src = appState.userData.avatar || '';
-  if (name) name.textContent = appState.userData.displayName || appState.userData.username || 'User';
-}
-
-// show app screen
-function showAppScreen() {
-  document.getElementById('loginScreen').classList.remove('active');
-  document.getElementById('appScreen').classList.add('active');
-}
-
-// logout
-function logout() {
-  if (!confirm('Logout and lose progress?')) return;
-  // simple reload
-  location.reload();
-}
-
-// -------------------------------
-// Steps & progress
-// -------------------------------
-function nextStep() {
-  if (!validateCurrentStep()) return;
-  document.getElementById(`step${appState.currentStep}`).classList.remove('active');
-  appState.currentStep++;
-  document.getElementById(`step${appState.currentStep}`).classList.add('active');
-  updateProgress();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function previousStep() {
-  document.getElementById(`step${appState.currentStep}`).classList.remove('active');
-  appState.currentStep = Math.max(1, appState.currentStep - 1);
-  document.getElementById(`step${appState.currentStep}`).classList.add('active');
-  updateProgress();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function validateCurrentStep() {
-  if (appState.currentStep === 1 && !appState.formData.server) { alert('Select server'); return false; }
-  if (appState.currentStep === 2 && !appState.formData.role) { alert('Select role'); return false; }
-  if (appState.currentStep === 3) {
-    if (!appState.formData.dob) { alert('Enter date of birth'); return false; }
-    if (appState.formData.age < 13) { alert('Minimum age 13'); return false; }
-  }
-  return true;
-}
-
-function updateProgress() {
-  const fill = document.getElementById('progressFill');
-  const pct = (appState.currentStep / 5) * 100;
-  if (fill) fill.style.width = `${pct}%`;
-}
-
-// server selection
-function selectServer(server) {
-  appState.formData.server = server;
-  document.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
-  const el = document.querySelector(`.server-card[data-server="${server}"]`);
-  if (el) el.classList.add('selected');
-  applyTheme(server);
-  // small delay then next
-  setTimeout(nextStep, 350);
-}
-
-function applyTheme(server) {
-  document.body.classList.remove('quantum-theme', 'redzone-theme');
-  const logo = document.getElementById('serverLogo');
-  const name = document.getElementById('serverName');
-  if (server === 'quantum') {
-    document.body.classList.add('quantum-theme');
-    if (name) name.textContent = 'Quantum Gaming';
-    if (logo) { logo.src = ''; logo.style.display = 'none'; }
-  } else {
-    document.body.classList.add('redzone-theme');
-    if (name) name.textContent = 'RedZone Esports';
-    if (logo) { logo.src = ''; logo.style.display = 'none'; }
-  }
-}
-
-// role
-function selectRole(role) {
-  appState.formData.role = role;
-  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-  const el = document.querySelector(`.role-card[data-role="${role}"]`);
-  if (el) el.classList.add('selected');
-  setTimeout(nextStep, 350);
-}
-
-// dob -> age
-function calculateAge() {
-  const val = document.getElementById('dobInput').value;
-  if (!val) return;
-  const birth = new Date(val);
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  appState.formData.dob = val;
-  appState.formData.age = age;
-  const ageEl = document.getElementById('ageValue');
-  if (ageEl) ageEl.textContent = age;
-  const ageDisp = document.getElementById('ageDisplay');
-  if (ageDisp) ageDisp.style.color = (age < 13 ? 'var(--danger)' : 'var(--success)');
-}
-
-// rules -> questions
-function proceedToQuestions() {
-  const agree = document.getElementById('agreeCheckbox');
-  if (!agree || !agree.checked) { alert('You must accept rules'); return; }
-  loadQuestions();
-  nextStep();
-}
-
-function loadQuestions() {
-  const questions = ROLE_QUESTIONS[appState.formData.role] || [];
-  const container = document.getElementById('questionsContainer');
-  container.innerHTML = '';
-  document.getElementById('questionsTitle').textContent = `${appState.formData.role} - Application Questions`;
-  questions.forEach((q, i) => {
-    const wrapper = document.createElement('div'); wrapper.className = 'question-item';
-    const label = document.createElement('label'); label.className = 'question-label'; label.textContent = q.question;
-    let input;
-    if (q.type === 'boolean') {
-      input = document.createElement('select'); input.className = 'question-input';
-      input.innerHTML = `<option value="">Select</option><option>Yes</option><option>No</option>`;
-    } else if (q.type === 'short') {
-      input = document.createElement('input'); input.type = 'text'; input.className = 'question-input'; input.placeholder = 'Answer...';
-    } else {
-      input = document.createElement('textarea'); input.className = 'question-textarea'; input.placeholder = 'Detailed answer...'; input.rows = 5;
-    }
-    input.dataset.index = i;
-    wrapper.appendChild(label); wrapper.appendChild(input); container.appendChild(wrapper);
-  });
-}
-
-// submit
-async function submitApplication() {
-  const inputs = Array.from(document.querySelectorAll('#questionsContainer input, #questionsContainer textarea, #questionsContainer select'));
-  const questions = ROLE_QUESTIONS[appState.formData.role] || [];
-  const answers = {};
-  let all = true;
-  inputs.forEach((inp, idx) => {
-    const v = inp.value.trim();
-    if (!v) all = false;
-    answers[questions[idx].question] = v || 'No answer';
-  });
-  if (!all) { alert('Please answer all questions'); return; }
-  appState.formData.answers = answers;
-
-  showLoading(true);
-  try {
-    await sendToDiscordWebhook();
-    showLoading(false);
-    showSuccessModal();
-  } catch (e) {
-    showLoading(false);
-    alert('Failed to submit: ' + e.message);
-    console.error(e);
-  }
-}
-
-async function sendToDiscordWebhook() {
-  if (!CONFIG.WEBHOOK_URL) throw new Error('Webhook URL not configured in index.html body data attributes.');
-  const now = new Date();
-  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const formattedDate = ist.toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
-  let answersText = '';
-  const questions = ROLE_QUESTIONS[appState.formData.role] || [];
-  questions.forEach(q => {
-    const ans = appState.formData.answers[q.question] || 'No answer';
-    answersText += `**${q.question}**\n${ans}\n\n`;
-  });
-
-  const embedColor = appState.formData.server === 'quantum' ? 0x0066ff : 0xff0000;
-
-  const payload = {
-    content: `📋 **NEW STAFF APPLICATION RECEIVED**`,
-    embeds: [
-      {
-        title: '👤 Applicant Information',
-        color: embedColor,
-        fields: [
-          { name: '📧 Email', value: appState.userData.email || 'N/A', inline: true },
-          { name: '👤 Display Name', value: appState.userData.displayName || 'N/A', inline: true },
-          { name: '🆔 Username', value: appState.userData.username || 'N/A', inline: true },
-          { name: '📅 Date of Submission', value: formattedDate + ' IST', inline: false },
-          { name: '🎮 Server', value: appState.formData.server === 'quantum' ? 'Quantum Gaming' : 'RedZone Esports', inline: true },
-          { name: '🎯 Applied Role', value: appState.formData.role, inline: true },
-          { name: '🎂 DOB', value: appState.formData.dob || 'N/A', inline: true },
-          { name: '📊 Age', value: (appState.formData.age || '--') + ' years', inline: true }
-        ],
-        timestamp: new Date().toISOString(),
-        footer: { text: 'Staff Application System' }
-      },
-      {
-        title: `📝 ${appState.formData.role} - Answers`,
-        description: answersText.length > 4000 ? answersText.substring(0, 4000) + '...\n*(truncated)*' : answersText,
-        color: embedColor,
-        timestamp: new Date().toISOString()
-      }
+// ============================================
+// ROLE QUESTIONS
+// ============================================
+const ROLE_QUESTIONS = {
+    'CREW': [
+        { q: '1. Why do you want to join the staff team?', type: 'long' },
+        { q: '2. How active can you be daily on Discord?', type: 'short' },
+        { q: '3. How would you help new members feel welcome?', type: 'long' },
+        { q: '4. What would you do if two members start arguing in chat?', type: 'long' },
+        { q: '5. Have you been staff in any other server before? (If yes, explain)', type: 'long' },
+        { q: '6. Do you know basic Discord rules and etiquette?', type: 'boolean' },
+        { q: '7. How do you handle criticism from seniors?', type: 'long' },
+        { q: 'SCENARIO: A popular player is breaking rules. What will you do?', type: 'long' }
+    ],
+    'COMMUNITY STAFF': [
+        { q: '1. How would you increase chat activity in the server?', type: 'long' },
+        { q: '2. What kind of events would you suggest for an eGaming server?', type: 'long' },
+        { q: '3. How do you deal with toxic members without escalating fights?', type: 'long' },
+        { q: '4. How would you handle a member who feels ignored?', type: 'long' },
+        { q: '5. Have you ever managed or grown a community?', type: 'long' },
+        { q: '6. How do you balance fun with rules?', type: 'long' },
+        { q: 'SCENARIO: A popular player is breaking rules. What will you do?', type: 'long' }
+    ],
+    'SCRIMS MANAGER': [
+        { q: '1. What are scrims and why are they important?', type: 'long' },
+        { q: '2. How would you schedule scrims between two teams?', type: 'long' },
+        { q: '3. What would you do if a team doesn\'t show up?', type: 'long' },
+        { q: '4. How do you handle disputes during scrims?', type: 'long' },
+        { q: '5. Can you manage multiple teams at once?', type: 'boolean' },
+        { q: '6. How will you ensure fair play during scrims?', type: 'long' },
+        { q: '7. What games are you experienced with?', type: 'short' },
+        { q: 'SCENARIO: A popular player is breaking rules. What will you do?', type: 'long' }
+    ],
+    'TOURNAMENTS STAFF': [
+        { q: '1. Have you ever helped in a tournament before?', type: 'boolean' },
+        { q: '2. How would you manage registrations?', type: 'long' },
+        { q: '3. What steps will you take to prevent cheating?', type: 'long' },
+        { q: '4. How will you handle match delays?', type: 'long' },
+        { q: '5. How do you deal with angry teams after losing?', type: 'long' },
+        { q: '6. Do you understand brackets, rules, and match flow?', type: 'boolean' },
+        { q: '7. How would you coordinate with Scrims Manager?', type: 'long' },
+        { q: 'SCENARIO: A popular player is breaking rules. What will you do?', type: 'long' }
+    ],
+    'HEAD MOD': [
+        { q: '1. What makes a good moderator?', type: 'long' },
+        { q: '2. How would you handle a staff member abusing power?', type: 'long' },
+        { q: '3. How do you deal with raids or mass spam?', type: 'long' },
+        { q: '4. When should a user be warned vs banned?', type: 'long' },
+        { q: '5. How do you stay calm in heated situations?', type: 'long' },
+        { q: '6. How would you train junior moderators?', type: 'long' },
+        { q: '7. What moderation bots or tools do you know?', type: 'short' },
+        { q: 'SCENARIO: A popular player is breaking rules. What will you do?', type: 'long' }
+    ],
+    'SR STAFF': [
+        { q: '1. What experience do you have managing large servers?', type: 'long' },
+        { q: '2. How do you make important server decisions?', type: 'long' },
+        { q: '3. How would you resolve conflict between two staff members?', type: 'long' },
+        { q: '4. How do you ensure staff discipline and professionalism?', type: 'long' },
+        { q: '5. How would you handle a server crisis?', type: 'long' },
+        { q: '6. What improvements would you suggest for our server?', type: 'long' },
+        { q: '7. Why should we trust you with high authority?', type: 'long' },
+        { q: 'SCENARIO: A popular player is breaking rules. What will you do?', type: 'long' }
     ]
-  };
+};
 
-  const res = await fetch(CONFIG.WEBHOOK_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'no body');
-    throw new Error('Webhook failed: ' + res.status + ' - ' + text);
-  }
+// ============================================
+// PARTICLE CANVAS ANIMATION
+// ============================================
+function initParticles() {
+    const canvas = document.getElementById('particleCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const particles = [];
+    const particleCount = 100;
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 1;
+            this.speedX = Math.random() * 0.5 - 0.25;
+            this.speedY = Math.random() * 0.5 - 0.25;
+            this.opacity = Math.random() * 0.5 + 0.2;
+        }
+        
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            
+            if (this.x > canvas.width) this.x = 0;
+            if (this.x < 0) this.x = canvas.width;
+            if (this.y > canvas.height) this.y = 0;
+            if (this.y < 0) this.y = canvas.height;
+        }
+        
+        draw() {
+            const color = appState.theme === 'red' ? '255, 0, 0' : '0, 212, 255';
+            ctx.fillStyle = `rgba(${color}, ${this.opacity})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(particle => {
+            particle.update();
+            particle.draw();
+        });
+        requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
 }
 
-// helpers: UI
-function showLoading(show) { const o = document.getElementById('loadingOverlay'); if (!o) return; if (show) o.classList.add('active'); else o.classList.remove('active'); }
-function showSuccessModal() { const m = document.getElementById('successModal'); if (m) m.classList.add('active'); }
-function resetApplication(){ location.reload(); }
-function showLoginMessage(msg, isError) { const el = document.getElementById('loginMessage'); if (!el) return; el.textContent = msg; el.style.color = isError ? 'var(--danger)' : 'var(--muted)'; }
+// ============================================
+// OAUTH2 HANDLING
+// ============================================
+function parseTokenFromHash() {
+    if (location.hash && location.hash.includes('access_token')) {
+        const params = new URLSearchParams(location.hash.slice(1));
+        const token = params.get('access_token');
+        const expires_in = params.get('expires_in');
+        
+        if (token) {
+            const data = {
+                token,
+                timestamp: Date.now(),
+                expires_in: Number(expires_in) || 604800
+            };
+            localStorage.setItem('discord_token', JSON.stringify(data));
+            history.replaceState(null, '', CONFIG.REDIRECT_URI);
+            return token;
+        }
+    }
+    
+    const stored = localStorage.getItem('discord_token');
+    if (stored) {
+        try {
+            const data = JSON.parse(stored);
+            const elapsed = Date.now() - data.timestamp;
+            if (elapsed < (data.expires_in * 1000)) {
+                return data.token;
+            } else {
+                localStorage.removeItem('discord_token');
+            }
+        } catch (e) {
+            localStorage.removeItem('discord_token');
+        }
+    }
+    
+    return null;
+}
+
+async function fetchDiscordUser(token) {
+    try {
+        const response = await fetch('https://discord.com/api/users/@me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch user');
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        return null;
+    }
+}
+
+function initiateDiscordLogin() {
+    window.location.href = AUTH_URL;
+}
+
+function logout() {
+    localStorage.removeItem('discord_token');
+    sessionStorage.clear();
+    location.reload();
+}
+
+// ============================================
+// SCREEN MANAGEMENT
+// ============================================
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    document.getElementById(screenId).classList.add('active');
+}
+
+// ============================================
+// THEME SWITCHING WITH ANIMATION
+// ============================================
+function applyTheme(theme) {
+    document.body.classList.add('theme-transitioning');
+    
+    if (theme === 'red') {
+        document.body.classList.add('red-theme');
+    } else {
+        document.body.classList.remove('red-theme');
+    }
+    
+    setTimeout(() => {
+        document.body.classList.remove('theme-transitioning');
+    }, 1000);
+}
+
+// ============================================
+// SERVER SELECTION
+// ============================================
+function selectServer(server, theme) {
+    appState.server = server;
+    appState.theme = theme;
+    
+    sessionStorage.setItem('selected_server', server);
+    sessionStorage.setItem('selected_theme', theme);
+    
+    // Apply theme with animation
+    applyTheme(theme);
+    
+    // Update login screen badge
+    const badge = document.getElementById('selectedServerBadge');
+    badge.textContent = server === 'quantum' ? 'QG' : 'RZ';
+    
+    // Check if already logged in
+    if (appState.token && appState.user) {
+        populateUserInfo();
+        showScreen('appScreen');
+    } else {
+        showScreen('loginScreen');
+    }
+}
+
+function backToServerSelect() {
+    sessionStorage.removeItem('selected_server');
+    sessionStorage.removeItem('selected_theme');
+    showScreen('serverSelection');
+}
+
+// ============================================
+// USER INFO POPULATION
+// ============================================
+function populateUserInfo() {
+    const user = appState.user;
+    
+    // Top nav
+    const username = user.discriminator && user.discriminator !== '0' 
+        ? `${user.username}#${user.discriminator}` 
+        : user.username;
+    
+    document.getElementById('navUsername').textContent = username;
+    
+    const avatar = user.avatar 
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${user.avatar.startsWith('a_') ? 'gif' : 'png'}?size=128`
+        : `https://cdn.discordapp.com/embed/avatars/${(parseInt(user.id) >> 22) % 6}.png`;
+    
+    document.getElementById('userAvatar').src = avatar;
+    
+    // Server logo in nav
+    const logo = document.getElementById('navServerLogo');
+    logo.textContent = appState.server === 'quantum' ? 'QG' : 'RZ';
+    document.getElementById('navServerName').textContent = appState.server === 'quantum' ? 'QUANTUM GAMING' : 'REDZONE ESPORTS';
+    
+    // Form fields
+    document.getElementById('username').value = username;
+    document.getElementById('email').value = user.email || 'No email provided';
+    document.getElementById('displayName').value = user.username;
+}
+
+// ============================================
+// STEP NAVIGATION
+// ============================================
+function updateProgressTracker(step) {
+    const steps = document.querySelectorAll('.progress-step');
+    const progressLine = document.getElementById('progressLine');
+    
+    steps.forEach((stepEl, index) => {
+        if (index < step) {
+            stepEl.classList.add('active');
+        } else {
+            stepEl.classList.remove('active');
+        }
+    });
+    
+    const progress = ((step - 1) / (steps.length - 1)) * 100;
+    progressLine.style.width = `${progress}%`;
+}
+
+function showStep(stepNumber) {
+    document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    document.getElementById(`step${stepNumber}`).classList.add('active');
+    appState.currentStep = stepNumber;
+    updateProgressTracker(stepNumber);
+}
+
+function goToNextStep() {
+    // Validation for each step
+    if (appState.currentStep === 1) {
+        const displayName = document.getElementById('displayName').value.trim();
+        const age = document.getElementById('age').value;
+        
+        if (!displayName || displayName.length < 2) {
+            alert('Please enter a valid display name (at least 2 characters)');
+            return;
+        }
+        
+        if (!age || age < 13 || age > 99) {
+            alert('Please enter a valid age (13-99)');
+            return;
+        }
+        
+        appState.formData.displayName = displayName;
+        appState.formData.age = age;
+    }
+    
+    if (appState.currentStep === 2) {
+        if (!appState.formData.role) {
+            alert('Please select a role');
+            return;
+        }
+    }
+    
+    if (appState.currentStep === 3) {
+        const rulesChecked = document.getElementById('rulesAgree').checked;
+        if (!rulesChecked) {
+            alert('You must agree to the rules to continue');
+            return;
+        }
+    }
+    
+    if (appState.currentStep < 4) {
+        showStep(appState.currentStep + 1);
+    }
+}
+
+function goToPrevStep() {
+    if (appState.currentStep > 1) {
+        showStep(appState.currentStep - 1);
+    }
+}
+
+// ============================================
+// ROLE SELECTION
+// ============================================
+function selectRole(role) {
+    document.querySelectorAll('.role-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    event.target.closest('.role-card').classList.add('selected');
+    appState.formData.role = role;
+    
+    // Load questions for this role
+    loadQuestions(role);
+}
+
+function loadQuestions(role) {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+    
+    const questions = ROLE_QUESTIONS[role];
+    
+    questions.forEach((q, index) => {
+        const block = document.createElement('div');
+        block.className = 'question-block';
+        
+        const label = document.createElement('label');
+        label.className = 'question-label';
+        label.textContent = q.q;
+        
+        let input;
+        if (q.type === 'long') {
+            input = document.createElement('textarea');
+            input.className = 'question-textarea';
+            input.placeholder = 'Write your answer here...';
+            input.required = true;
+        } else if (q.type === 'short') {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'question-input';
+            input.placeholder = 'Your answer...';
+            input.required = true;
+        } else if (q.type === 'boolean') {
+            input = document.createElement('select');
+            input.className = 'question-input';
+            input.innerHTML = '<option value="">Choose...</option><option value="Yes">Yes</option><option value="No">No</option>';
+            input.required = true;
+        }
+        
+        input.dataset.questionIndex = index;
+        
+        block.appendChild(label);
+        block.appendChild(input);
+        container.appendChild(block);
+    });
+}
+
+// ============================================
+// FORM SUBMISSION
+// ============================================
+async function submitApplication() {
+    // Collect answers
+    const inputs = document.querySelectorAll('#questionsContainer input, #questionsContainer textarea, #questionsContainer select');
+    const questions = ROLE_QUESTIONS[appState.formData.role];
+    
+    appState.formData.answers = {};
+    
+    let allAnswered = true;
+    inputs.forEach((input, index) => {
+        const answer = input.value.trim();
+        if (!answer) {
+            allAnswered = false;
+        }
+        appState.formData.answers[questions[index].q] = answer;
+    });
+    
+    if (!allAnswered) {
+        alert('Please answer all questions before submitting');
+        return;
+    }
+    
+    // Show loading
+    document.getElementById('loadingOverlay').classList.add('active');
+    
+    try {
+        await sendToWebhook();
+        document.getElementById('loadingOverlay').classList.remove('active');
+        showScreen('thankYouScreen');
+    } catch (error) {
+        document.getElementById('loadingOverlay').classList.remove('active');
+        alert('Failed to submit application. Please try again.');
+        console.error(error);
+    }
+}
+
+async function sendToWebhook() {
+    const now = new Date();
+    const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    
+    const username = appState.user.discriminator && appState.user.discriminator !== '0'
+        ? `${appState.user.username}#${appState.user.discriminator}`
+        : appState.user.username;
+    
+    // Plain text for basic info
+    let plainText = `**NEW STAFF APPLICATION RECEIVED**
+
+Display Name: ${appState.formData.displayName}
+Email: ${appState.user.email || 'No email provided'}
+Username: ${username}
+Age: ${appState.formData.age}
+Date of Submission: ${istTime} IST
+Server: ${appState.server === 'quantum' ? 'Quantum Gaming' : 'RedZone Esports'}
+`;
+    
+    // Embed for questions and answers
+    let answersText = '';
+    Object.keys(appState.formData.answers).forEach(question => {
+        answersText += `**${question}**\n${appState.formData.answers[question]}\n\n`;
+    });
+    
+    // Truncate if too long
+    if (answersText.length > 4000) {
+        answersText = answersText.substring(0, 4000) + '...\n*(Truncated)*';
+    }
+    
+    const embedColor = appState.theme === 'blue' ? 0x00d4ff : 0xff0000;
+    
+    const payload = {
+        content: plainText,
+        embeds: [{
+            title: `${appState.formData.role} - Application Answers`,
+            description: answersText,
+            color: embedColor,
+            timestamp: now.toISOString(),
+            footer: { text: 'Staff Application System' }
+        }]
+    };
+    
+    const response = await fetch(CONFIG.WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+        throw new Error('Webhook failed');
+    }
+}
+
+// ============================================
+// EVENT LISTENERS SETUP
+// ============================================
+function setupEventListeners() {
+    // Server selection cards
+    document.querySelectorAll('.server-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const server = option.dataset.server;
+            const theme = option.dataset.theme;
+            selectServer(server, theme);
+        });
+    });
+    
+    // Back to server select
+    const backBtn = document.getElementById('backToServerBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', backToServerSelect);
+    }
+    
+    // Discord login button
+    const loginBtn = document.getElementById('discordLoginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', initiateDiscordLogin);
+    }
+    
+    // Logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+    
+    // Step navigation buttons
+    const step1NextBtn = document.getElementById('step1NextBtn');
+    if (step1NextBtn) {
+        step1NextBtn.addEventListener('click', goToNextStep);
+    }
+    
+    const step2BackBtn = document.getElementById('step2BackBtn');
+    if (step2BackBtn) {
+        step2BackBtn.addEventListener('click', goToPrevStep);
+    }
+    
+    const step2NextBtn = document.getElementById('step2NextBtn');
+    if (step2NextBtn) {
+        step2NextBtn.addEventListener('click', goToNextStep);
+    }
+    
+    const step3BackBtn = document.getElementById('step3BackBtn');
+    if (step3BackBtn) {
+        step3BackBtn.addEventListener('click', goToPrevStep);
+    }
+    
+    const step3NextBtn = document.getElementById('step3NextBtn');
+    if (step3NextBtn) {
+        step3NextBtn.addEventListener('click', goToNextStep);
+    }
+    
+    const step4BackBtn = document.getElementById('step4BackBtn');
+    if (step4BackBtn) {
+        step4BackBtn.addEventListener('click', goToPrevStep);
+    }
+    
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', submitApplication);
+    }
+    
+    // Role cards
+    document.querySelectorAll('.role-card').forEach(card => {
+        card.addEventListener('click', function() {
+            selectRole(this.dataset.role);
+        });
+    });
+    
+    // Rules agreement checkbox
+    const rulesCheckbox = document.getElementById('rulesAgree');
+    const continueBtn = document.getElementById('step3NextBtn');
+    
+    if (rulesCheckbox && continueBtn) {
+        rulesCheckbox.addEventListener('change', (e) => {
+            continueBtn.disabled = !e.target.checked;
+        });
+    }
+    
+    // Apply again button
+    const applyAgainBtn = document.getElementById('applyAgainBtn');
+    if (applyAgainBtn) {
+        applyAgainBtn.addEventListener('click', () => {
+            location.reload();
+        });
+    }
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+async function initApp() {
+    // Initialize particles
+    initParticles();
+    
+    // Check for Discord token
+    const token = parseTokenFromHash();
+    
+    if (token) {
+        appState.token = token;
+        const user = await fetchDiscordUser(token);
+        
+        if (user) {
+            appState.user = user;
+            
+            // Check if server was already selected
+            const savedServer = sessionStorage.getItem('selected_server');
+            const savedTheme = sessionStorage.getItem('selected_theme');
+            
+            if (savedServer && savedTheme) {
+                appState.server = savedServer;
+                appState.theme = savedTheme;
+                
+                // Apply theme without animation on initial load
+                if (savedTheme === 'red') {
+                    document.body.classList.add('red-theme');
+                }
+                
+                // Populate user info
+                populateUserInfo();
+                
+                // Show app screen
+                showScreen('appScreen');
+            } else {
+                // Show server selection (user is logged in but no server selected yet)
+                showScreen('serverSelection');
+            }
+        }
+    } else {
+        // No token, show server selection
+        showScreen('serverSelection');
+    }
+    
+    // Setup event listeners
+    setupEventListeners();
+}
+
+// Start the app when DOM is ready
+document.addEventListener('DOMContentLoaded', initApp);
