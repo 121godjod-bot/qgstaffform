@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Application - Gaming Portal</title>
+    <title>Quantum Gaming - Staff Application</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,276 +12,415 @@
         <canvas id="particleCanvas"></canvas>
         <div class="grid-lines"></div>
         <div class="scanlines"></div>
+        <div class="pixel-rain"></div>
     </div>
 
-    <!-- SCREEN 1: SERVER SELECTION -->
-    <div id="serverSelection" class="screen active">
-        <div class="server-select-container">
-            <div class="logo-section">
-                <div class="main-logo">STAFF PORTAL</div>
-                <div class="tagline">SELECT YOUR BATTLEFIELD</div>
-            </div>
-            
-            <div class="server-cards">
-                <div class="server-option" data-server="quantum" data-theme="blue">
-                    <div class="server-card-inner">
-                        <div class="server-icon quantum-icon">QG</div>
-                        <h2>QUANTUM GAMING</h2>
-                        <p>Enter the Quantum Dimension</p>
-                        <div class="hover-effect"></div>
-                    </div>
-                </div>
-                
-                <div class="server-option" data-server="redzone" data-theme="red">
-                    <div class="server-card-inner">
-                        <div class="server-icon redzone-icon">RZ</div>
-                        <h2>REDZONE ESPORTS</h2>
-                        <p>Enter the Danger Zone</p>
-                        <div class="hover-effect"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCREEN 2: LOGIN -->
-    <div id="loginScreen" class="screen">
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="login-box">
-                <div class="server-badge" id="selectedServerBadge"></div>
-                <h1 class="login-title">AUTHENTICATE</h1>
-                <p class="login-subtitle">Connect your Discord account to proceed</p>
-                <button id="discordLoginBtn" class="action-btn glow-btn">
-                    <svg class="discord-icon" viewBox="0 0 127.14 96.36" fill="currentColor">
-                        <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
-                    </svg>
-                    LOGIN WITH DISCORD
+                <div class="quantum-logo-big">QG</div>
+                <h1 class="login-title">QUANTUM GAMING</h1>
+                <div class="title-glow"></div>
+                <h2 class="login-subtitle">STAFF APPLICATION PORTAL</h2>
+                <p class="login-desc">Initialize authentication sequence</p>
+                
+                <button id="discordLoginBtn" class="gaming-btn primary-gaming-btn">
+                    <span class="btn-border-anim"></span>
+                    <span class="btn-content">
+                        <svg class="discord-icon" viewBox="0 0 127.14 96.36" fill="currentColor">
+                            <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+                        </svg>
+                        <span class="btn-text">LOGIN WITH DISCORD</span>
+                    </span>
+                    <span class="btn-particles"></span>
                 </button>
-                <div class="back-link" id="backToServerBtn">← Change Server</div>
             </div>
         </div>
     </div>
 
-    <!-- SCREEN 3: MAIN APPLICATION -->
+    <!-- MAIN APPLICATION SCREEN -->
     <div id="appScreen" class="screen">
-        <!-- Top Navigation Bar -->
+        <!-- Top Navigation -->
         <nav class="top-nav">
             <div class="nav-left">
-                <div class="server-logo" id="navServerLogo"></div>
-                <span class="server-name" id="navServerName">STAFF PORTAL</span>
+                <div class="nav-logo">QG</div>
+                <div class="nav-titles">
+                    <div class="nav-title">QUANTUM GAMING</div>
+                    <div class="nav-subtitle">STAFF PORTAL</div>
+                </div>
             </div>
             <div class="nav-right">
-                <div class="user-info" id="userInfo">
-                    <img id="userAvatar" src="" alt="avatar" class="nav-avatar">
-                    <span id="navUsername">Loading...</span>
+                <div class="user-badge">
+                    <img id="userAvatar" src="" alt="avatar" class="user-avatar">
+                    <div class="user-details">
+                        <div id="navUsername" class="user-name">Loading...</div>
+                        <div class="user-role">APPLICANT</div>
+                    </div>
                 </div>
-                <button id="logoutBtn" class="logout-btn">LOGOUT</button>
+                <button id="logoutBtn" class="logout-btn gaming-btn-small">
+                    <span class="btn-border-anim"></span>
+                    <span class="btn-content">LOGOUT</span>
+                </button>
             </div>
         </nav>
 
         <!-- Progress Tracker -->
-        <div class="progress-tracker">
-            <div class="progress-line" id="progressLine"></div>
+        <div class="progress-section">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressFill"></div>
+                <div class="progress-glow"></div>
+            </div>
             <div class="progress-steps">
-                <div class="progress-step active" data-step="1">
-                    <div class="step-number">1</div>
-                    <div class="step-label">IDENTITY</div>
+                <div class="step-item active" data-step="1">
+                    <div class="step-circle">
+                        <span class="step-num">1</span>
+                        <svg class="step-hexagon" viewBox="0 0 100 100">
+                            <polygon points="50 1 95 25 95 75 50 99 5 75 5 25" />
+                        </svg>
+                    </div>
+                    <div class="step-name">IDENTITY</div>
                 </div>
-                <div class="progress-step" data-step="2">
-                    <div class="step-number">2</div>
-                    <div class="step-label">ROLE</div>
+                <div class="step-item" data-step="2">
+                    <div class="step-circle">
+                        <span class="step-num">2</span>
+                        <svg class="step-hexagon" viewBox="0 0 100 100">
+                            <polygon points="50 1 95 25 95 75 50 99 5 75 5 25" />
+                        </svg>
+                    </div>
+                    <div class="step-name">MISSION</div>
                 </div>
-                <div class="progress-step" data-step="3">
-                    <div class="step-number">3</div>
-                    <div class="step-label">RULES</div>
+                <div class="step-item" data-step="3">
+                    <div class="step-circle">
+                        <span class="step-num">3</span>
+                        <svg class="step-hexagon" viewBox="0 0 100 100">
+                            <polygon points="50 1 95 25 95 75 50 99 5 75 5 25" />
+                        </svg>
+                    </div>
+                    <div class="step-name">PROTOCOL</div>
                 </div>
-                <div class="progress-step" data-step="4">
-                    <div class="step-number">4</div>
-                    <div class="step-label">QUESTIONS</div>
+                <div class="step-item" data-step="4">
+                    <div class="step-circle">
+                        <span class="step-num">4</span>
+                        <svg class="step-hexagon" viewBox="0 0 100 100">
+                            <polygon points="50 1 95 25 95 75 50 99 5 75 5 25" />
+                        </svg>
+                    </div>
+                    <div class="step-name">BRIEFING</div>
                 </div>
             </div>
         </div>
 
-        <!-- Form Sections -->
-        <div class="form-content">
-            <!-- STEP 1: USER IDENTITY -->
-            <div id="step1" class="form-section active">
-                <h2 class="section-title">PLAYER IDENTITY</h2>
+        <!-- Form Content -->
+        <div class="form-container">
+            <!-- STEP 1: IDENTITY -->
+            <div id="step1" class="form-step active">
+                <h2 class="step-title"><span class="title-bracket">[</span> PLAYER IDENTIFICATION <span class="title-bracket">]</span></h2>
+                
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label>DISCORD USERNAME</label>
-                        <input type="text" id="username" readonly class="locked-field">
-                        <span class="field-icon">🔒</span>
+                    <div class="input-group locked">
+                        <label class="input-label">DISCORD USERNAME</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="username" readonly class="game-input locked-input">
+                            <span class="input-icon">LOCKED</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>EMAIL ADDRESS</label>
-                        <input type="email" id="email" readonly class="locked-field">
-                        <span class="field-icon">🔒</span>
+
+                    <div class="input-group locked">
+                        <label class="input-label">EMAIL ADDRESS</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="email" readonly class="game-input locked-input">
+                            <span class="input-icon">LOCKED</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>DISPLAY NAME</label>
-                        <input type="text" id="displayName" placeholder="How should we call you?" maxlength="50" required>
-                        <span class="field-hint">You can change this</span>
+
+                    <div class="input-group">
+                        <label class="input-label">DISPLAY NAME</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="displayName" placeholder="Enter your callsign" class="game-input" maxlength="50" required>
+                            <span class="input-icon">EDIT</span>
+                        </div>
+                        <span class="input-hint">How should we address you?</span>
                     </div>
-                    <div class="form-group">
-                        <label>AGE</label>
-                        <input type="number" id="age" placeholder="Your age" min="13" max="99" required>
-                        <span class="field-hint">Must be 13+</span>
+
+                    <div class="input-group full-width">
+                        <label class="input-label">DATE OF BIRTH</label>
+                        <div class="input-wrapper">
+                            <input type="date" id="dobInput" class="game-input date-input" required>
+                            <span class="input-icon">SELECT</span>
+                        </div>
+                        <div id="ageDisplay" class="age-display">
+                            Age: <span id="ageValue">--</span> years old
+                        </div>
+                        <span class="input-hint">Must be 13 years or older</span>
                     </div>
                 </div>
+
                 <div class="form-actions">
-                    <button class="action-btn primary-btn" id="step1NextBtn">SAVE & CONTINUE →</button>
+                    <button class="gaming-btn primary-gaming-btn" onclick="nextStep()">
+                        <span class="btn-border-anim"></span>
+                        <span class="btn-content">
+                            <span class="btn-text">SAVE & CONTINUE</span>
+                            <span class="btn-arrow">→</span>
+                        </span>
+                    </button>
                 </div>
             </div>
 
             <!-- STEP 2: ROLE SELECTION -->
-            <div id="step2" class="form-section">
-                <h2 class="section-title">SELECT YOUR ROLE</h2>
-                <div class="role-grid">
-                    <div class="role-card" data-role="CREW">
-                        <div class="role-icon">👥</div>
-                        <h3>CREW</h3>
-                        <p>Basic Staff / Helpers</p>
+            <div id="step2" class="form-step">
+                <h2 class="step-title"><span class="title-bracket">[</span> SELECT YOUR MISSION <span class="title-bracket">]</span></h2>
+                
+                <div class="roles-grid">
+                    <div class="role-card" data-role="CREW" onclick="selectRole('CREW')">
+                        <div class="role-hexagon">
+                            <span class="role-icon-text">CREW</span>
+                        </div>
+                        <h3 class="role-title">CREW</h3>
+                        <p class="role-desc">Basic Staff / Helpers</p>
+                        <div class="role-select-indicator">SELECT</div>
                     </div>
-                    <div class="role-card" data-role="COMMUNITY STAFF">
-                        <div class="role-icon">🛠️</div>
-                        <h3>COMMUNITY STAFF</h3>
-                        <p>Engage & Grow Community</p>
+
+                    <div class="role-card" data-role="COMMUNITY STAFF" onclick="selectRole('COMMUNITY STAFF')">
+                        <div class="role-hexagon">
+                            <span class="role-icon-text">COMM</span>
+                        </div>
+                        <h3 class="role-title">COMMUNITY STAFF</h3>
+                        <p class="role-desc">Engage & Grow Community</p>
+                        <div class="role-select-indicator">SELECT</div>
                     </div>
-                    <div class="role-card" data-role="SCRIMS MANAGER">
-                        <div class="role-icon">⚔️</div>
-                        <h3>SCRIMS MANAGER</h3>
-                        <p>Organize Practice Matches</p>
+
+                    <div class="role-card" data-role="SCRIMS MANAGER" onclick="selectRole('SCRIMS MANAGER')">
+                        <div class="role-hexagon">
+                            <span class="role-icon-text">SCRIM</span>
+                        </div>
+                        <h3 class="role-title">SCRIMS MANAGER</h3>
+                        <p class="role-desc">Organize Practice Matches</p>
+                        <div class="role-select-indicator">SELECT</div>
                     </div>
-                    <div class="role-card" data-role="TOURNAMENTS STAFF">
-                        <div class="role-icon">🏆</div>
-                        <h3>TOURNAMENTS STAFF</h3>
-                        <p>Manage Competitions</p>
+
+                    <div class="role-card" data-role="TOURNAMENTS STAFF" onclick="selectRole('TOURNAMENTS STAFF')">
+                        <div class="role-hexagon">
+                            <span class="role-icon-text">TOUR</span>
+                        </div>
+                        <h3 class="role-title">TOURNAMENTS STAFF</h3>
+                        <p class="role-desc">Manage Competitions</p>
+                        <div class="role-select-indicator">SELECT</div>
                     </div>
-                    <div class="role-card" data-role="HEAD MOD">
-                        <div class="role-icon">🛡️</div>
-                        <h3>HEAD MOD</h3>
-                        <p>Lead Moderation Team</p>
+
+                    <div class="role-card" data-role="HEAD MOD" onclick="selectRole('HEAD MOD')">
+                        <div class="role-hexagon">
+                            <span class="role-icon-text">HMOD</span>
+                        </div>
+                        <h3 class="role-title">HEAD MOD</h3>
+                        <p class="role-desc">Lead Moderation Team</p>
+                        <div class="role-select-indicator">SELECT</div>
                     </div>
-                    <div class="role-card" data-role="SR STAFF">
-                        <div class="role-icon">⭐</div>
-                        <h3>SR STAFF</h3>
-                        <p>Senior Administration</p>
+
+                    <div class="role-card" data-role="SR STAFF" onclick="selectRole('SR STAFF')">
+                        <div class="role-hexagon">
+                            <span class="role-icon-text">SENIOR</span>
+                        </div>
+                        <h3 class="role-title">SR STAFF</h3>
+                        <p class="role-desc">Senior Administration</p>
+                        <div class="role-select-indicator">SELECT</div>
                     </div>
                 </div>
+
                 <div class="form-actions">
-                    <button class="action-btn secondary-btn" id="step2BackBtn">← BACK</button>
-                    <button class="action-btn primary-btn" id="step2NextBtn">SAVE & CONTINUE →</button>
+                    <button class="gaming-btn secondary-gaming-btn" onclick="prevStep()">
+                        <span class="btn-border-anim"></span>
+                        <span class="btn-content">
+                            <span class="btn-arrow">←</span>
+                            <span class="btn-text">BACK</span>
+                        </span>
+                    </button>
+                    <button class="gaming-btn primary-gaming-btn" onclick="nextStep()">
+                        <span class="btn-border-anim"></span>
+                        <span class="btn-content">
+                            <span class="btn-text">SAVE & CONTINUE</span>
+                            <span class="btn-arrow">→</span>
+                        </span>
+                    </button>
                 </div>
             </div>
 
             <!-- STEP 3: RULES -->
-            <div id="step3" class="form-section">
-                <h2 class="section-title">APPLICATION RULES</h2>
-                <div class="rules-box">
-                    <div class="rule-item">
-                        <span class="rule-num">01</span>
-                        <span class="rule-text">Do NOT use AI tools (ChatGPT, Bard) - instant rejection</span>
+            <div id="step3" class="form-step">
+                <h2 class="step-title"><span class="title-bracket">[</span> APPLICATION PROTOCOL <span class="title-bracket">]</span></h2>
+                
+                <div class="rules-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-title">RULES.txt</span>
+                        <span class="terminal-status">SYSTEM ACTIVE</span>
                     </div>
-                    <div class="rule-item">
-                        <span class="rule-num">02</span>
-                        <span class="rule-text">Answer honestly and in your own words</span>
+                    <div class="terminal-content">
+                        <div class="rule-line"><span class="rule-num">[01]</span> Do NOT use AI tools (ChatGPT, Bard) - Instant rejection</div>
+                        <div class="rule-line"><span class="rule-num">[02]</span> Answer honestly in your own words - No fake experience</div>
+                        <div class="rule-line"><span class="rule-num">[03]</span> No plagiarism or copying from others</div>
+                        <div class="rule-line"><span class="rule-num">[04]</span> Use proper language - No abuse or spam</div>
+                        <div class="rule-line"><span class="rule-num">[05]</span> One application per person only</div>
+                        <div class="rule-line"><span class="rule-num">[06]</span> Minimum age requirement must be met</div>
+                        <div class="rule-line"><span class="rule-num">[07]</span> Be available for interview if shortlisted</div>
+                        <div class="rule-line"><span class="rule-num">[08]</span> Staff decision is final and absolute</div>
+                        
+                        <div class="warning-box">
+                            <div class="warning-title">WARNING: VIOLATION CONSEQUENCES</div>
+                            <div class="warning-text">AI usage / Copying / Fake info = Instant rejection + Server ban</div>
+                        </div>
                     </div>
-                    <div class="rule-item">
-                        <span class="rule-num">03</span>
-                        <span class="rule-text">No plagiarism or copying from others</span>
-                    </div>
-                    <div class="rule-item">
-                        <span class="rule-num">04</span>
-                        <span class="rule-text">Use proper language - no abuse or spam</span>
-                    </div>
-                    <div class="rule-item">
-                        <span class="rule-num">05</span>
-                        <span class="rule-text">One application per person only</span>
-                    </div>
-                    <div class="rule-item">
-                        <span class="rule-num">06</span>
-                        <span class="rule-text">Minimum age requirement must be met</span>
-                    </div>
-                    <div class="rule-item">
-                        <span class="rule-num">07</span>
-                        <span class="rule-text">Be available for interview if shortlisted</span>
-                    </div>
-                    <div class="rule-item">
-                        <span class="rule-num">08</span>
-                        <span class="rule-text">Staff decision is final and absolute</span>
-                    </div>
-                    
-                    <div class="warning-banner">
-                        <h4>⚠️ CONSEQUENCES</h4>
-                        <p>Using AI, copying, or fake information = Instant rejection + possible server ban</p>
-                    </div>
-                    
-                    <label class="agreement-check">
+                </div>
+
+                <div class="agreement-container">
+                    <label class="cyber-checkbox">
                         <input type="checkbox" id="rulesAgree">
-                        <span class="checkmark"></span>
-                        <span class="agreement-text">I confirm all answers are written by me, without AI or external help. I accept all rules above.</span>
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">I confirm all answers are my own work, without AI assistance. I accept all rules and consequences.</span>
                     </label>
                 </div>
+
                 <div class="form-actions">
-                    <button class="action-btn secondary-btn" id="step3BackBtn">← BACK</button>
-                    <button class="action-btn primary-btn" id="step3NextBtn" disabled>SAVE & CONTINUE →</button>
+                    <button class="gaming-btn secondary-gaming-btn" onclick="prevStep()">
+                        <span class="btn-border-anim"></span>
+                        <span class="btn-content">
+                            <span class="btn-arrow">←</span>
+                            <span class="btn-text">BACK</span>
+                        </span>
+                    </button>
+                    <button class="gaming-btn primary-gaming-btn" id="continueRules" disabled onclick="nextStep()">
+                        <span class="btn-border-anim"></span>
+                        <span class="btn-content">
+                            <span class="btn-text">SAVE & CONTINUE</span>
+                            <span class="btn-arrow">→</span>
+                        </span>
+                    </button>
                 </div>
             </div>
 
             <!-- STEP 4: QUESTIONS -->
-            <div id="step4" class="form-section">
-                <h2 class="section-title" id="questionsTitle">ROLE QUESTIONS</h2>
+            <div id="step4" class="form-step">
+                <h2 class="step-title" id="questionsTitle"><span class="title-bracket">[</span> MISSION BRIEFING <span class="title-bracket">]</span></h2>
+                
                 <div id="questionsContainer" class="questions-list">
-                    <!-- Questions will be dynamically loaded here -->
+                    <!-- Dynamically loaded -->
                 </div>
+
                 <div class="form-actions">
-                    <button class="action-btn secondary-btn" id="step4BackBtn">← BACK</button>
-                    <button class="action-btn primary-btn" id="submitBtn">SUBMIT APPLICATION</button>
+                    <button class="gaming-btn secondary-gaming-btn" onclick="prevStep()">
+                        <span class="btn-border-anim"></span>
+                        <span class="btn-content">
+                            <span class="btn-arrow">←</span>
+                            <span class="btn-text">BACK</span>
+                        </span>
+                    </button>
+                    <button class="gaming-btn submit-gaming-btn" onclick="submitApplication()">
+                        <span class="btn-border-anim"></span>
+                        <span class="btn-content">
+                            <span class="btn-text">SUBMIT APPLICATION</span>
+                            <span class="btn-icon">SEND</span>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SCREEN 4: THANK YOU PAGE -->
+    <!-- THANK YOU SCREEN -->
     <div id="thankYouScreen" class="screen">
-        <div class="thankyou-container">
-            <div class="thankyou-banner" id="thankYouBanner">
-                🎮
-            </div>
-            <h1 class="thankyou-title">MISSION COMPLETE!</h1>
-            <p class="thankyou-message">Thanks For Submitting</p>
-            <p class="thankyou-info">You will receive email and DM from our Discord bot within 3 to 5 minutes.<br>Make sure to check spam/promotion folders!</p>
-            
-            <div class="faq-section">
-                <h3>FREQUENTLY ASKED QUESTIONS</h3>
-                <div class="faq-item">
-                    <div class="faq-q">❓ Didn't receive email?</div>
-                    <div class="faq-a">Check spam, promotion, or updates folders. Wait up to 5 minutes.</div>
+        <div class="thankyou-wrapper">
+            <div class="success-animation">
+                <div class="success-circle">
+                    <div class="success-check">DONE</div>
                 </div>
+            </div>
+
+            <h1 class="thankyou-title">MISSION COMPLETE!</h1>
+            <p class="thankyou-subtitle">Application Successfully Submitted</p>
+
+            <div class="info-panel">
+                <p class="info-text">
+                    You will receive an email and Discord DM from our bot within <strong>3-5 minutes</strong>.
+                </p>
+                <p class="info-subtext">
+                    Check your <strong>spam/promotion/updates</strong> folders!
+                </p>
+            </div>
+
+            <div class="faq-section">
+                <h3 class="faq-title">FREQUENTLY ASKED QUESTIONS</h3>
+                
                 <div class="faq-item">
-                    <div class="faq-q">❓ Didn't receive Discord DM?</div>
-                    <div class="faq-a">
-                        <p><strong>Make sure you joined our servers:</strong></p>
-                        <p>→ <a href="https://discord.gg/quantumgaming" target="_blank">Quantum Gaming Server</a></p>
-                        <p>→ <a href="https://discord.gg/redzone" target="_blank">RedZone Esports Server</a></p>
-                        <p><strong>Open your DMs:</strong> Settings → Privacy & Safety → Allow DMs from server members</p>
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span class="faq-icon">+</span>
+                        <span class="faq-q-text">Didn't receive email?</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Check these folders in your email:</p>
+                        <ul>
+                            <li>Spam folder</li>
+                            <li>Promotions tab (Gmail)</li>
+                            <li>Updates folder</li>
+                        </ul>
+                        <p>Wait up to 5 minutes. If still not received, contact support.</p>
                     </div>
                 </div>
+
                 <div class="faq-item">
-                    <div class="faq-q">❓ More problems?</div>
-                    <div class="faq-a">Create a ticket in our Discord server for support.</div>
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span class="faq-icon">+</span>
+                        <span class="faq-q-text">Didn't receive Discord DM?</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>Step 1:</strong> Make sure you joined our server:</p>
+                        <p class="server-link">→ <a href="https://discord.gg/quantumgaming" target="_blank">Quantum Gaming Discord</a></p>
+                        
+                        <p><strong>Step 2:</strong> Enable DMs from server members:</p>
+                        <ul>
+                            <li>Right-click the server icon</li>
+                            <li>Click "Privacy Settings"</li>
+                            <li>Enable "Direct Messages"</li>
+                        </ul>
+                        
+                        <p><strong>Step 3:</strong> Check your DM requests/message filter</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span class="faq-icon">+</span>
+                        <span class="faq-q-text">More problems?</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Create a support ticket in our Discord server:</p>
+                        <p class="server-link">→ Go to #support or #tickets channel</p>
+                        <p>Our staff will assist you within 24 hours.</p>
+                    </div>
                 </div>
             </div>
-            
-            <button class="action-btn primary-btn" id="applyAgainBtn">APPLY AGAIN</button>
+
+            <button class="gaming-btn primary-gaming-btn" onclick="location.reload()">
+                <span class="btn-border-anim"></span>
+                <span class="btn-content">
+                    <span class="btn-text">APPLY AGAIN</span>
+                    <span class="btn-icon">RESET</span>
+                </span>
+            </button>
         </div>
     </div>
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <p class="loading-text">PROCESSING...</p>
+        <div class="loading-hexagon">
+            <div class="hex-spinner"></div>
+            <div class="hex-text">PROCESSING</div>
+        </div>
+        <div class="loading-bars">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
     </div>
 
     <script src="script.js"></script>
